@@ -137,7 +137,10 @@
 
     function setPanel(mode, textBig, textSmall){
       panel.className = `panel ${mode}`;
-      msg.innerHTML = `<div class="big">${textBig}</div>${textSmall? `<div class="muted">${textSmall}</div>`:''}`;
+      panel.style.background = "";                
+      msg.innerHTML = `<div class="big">${textBig}</div>${
+        textSmall ? `<div class="muted">${textSmall}</div>` : ""
+      }`;
     }
 
     function start(){
