@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reaction Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --purple:#8e44ad; --blue:#3498db; --pink:#ff7eb3;
+      --ok:#1f9d55;     --wait:#c0392b; --bg:#f7f7f7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    body{background:#f5f5f5;color:#222;display:flex;flex-direction:column}
+
+    .topbar{
+      display:flex;gap:12px;align-items:center;justify-content:space-between;
+      padding:12px 16px;background:rgba(255,255,255,.9);
+      box-shadow:0 2px 8px rgba(0,0,0,.1);position:sticky;top:0;z-index:5
+    }
+    .topbar a{color:#6b3bbd;text-decoration:none;font-weight:700}
+    .title{font-weight:800}
+    .btn{
+      border:0;border-radius:999px;padding:10px 16px;font-weight:700;
+      color:#fff;background:linear-gradient(90deg,var(--purple),var(--blue));
+      cursor:pointer;transition:transform .12s ease,filter .2s ease
+    }
+    .btn:hover{filter:brightness(1.05)}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:#eaeaea;color:#333}
+
+    .wrap{max-width:960px;margin:16px auto;padding:0 16px;flex:1;display:flex;gap:16px;flex-wrap:wrap}
+    .panel{
+      flex:1 1 600px;min-height:360px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);user-select:none;position:relative;overflow:hidden
+    }
+    .panel.wait   {background:#ffe7e7}
+    .panel.ready  {background:#ffe7e7}
+    .panel.now    {background:#e8ffe8}
+    .panel.toosoon{background:#fff2cc}
+
+    .msg{
+      text-align:center;padding:24px;max-width:90%;
+      font-size:clamp(18px,3.2vw,28px);line-height:1.35
+    }
+    .big   {font-size:clamp(28px,6vw,64px);font-weight:900;margin-bottom:.25em}
+    .muted {opacity:.7}
+
+    .stats{
+      flex:1 1 260px;min-width:260px;background:#fff;border-radius:16px;
+      box-shadow:0 10px 30px rgba(0,0,0,.08);padding:16px;height:fit-content
+    }
+    .stat-grid{display:grid;grid-template-columns:1fr auto;row-gap:8px;column-gap:12px;margin:8px 0 16px}
+    .k{opacity:.7}
+    .v{font-weight:800}
+    .history{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;white-space:pre-wrap}
+
+    @media (max-width:700px){
+      .panel{min-height:300px}
+    }
+    .sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">⚡ Reaction Test</div>
+    <div style="display:flex;gap:8px">
+      <a href="index.html" class="btn secondary">← Back</a>
+      <button id="reset" class="btn secondary" title="Clear best record">Reset</button>
+      <button id="start" class="btn">Start</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="panel" class="panel wait" role="button" aria-live="polite" tabindex="0">
+      <div class="msg" id="msg">
+        <div class="big">Click <span style="color:var(--blue)">Start</span> (top-right corner) to begin</div>
+        <div class="muted">
+          Wait until the background turns <strong style="color:var(--ok)">green</strong>,  
+          then click or press the space bar/Enter.  
+          Clicking too early will count as <em>Too soon</em>.
+        </div>
+      </div>
+    </div>
+
+    <aside class="stats">
+      <div style="font-weight:800;margin-bottom:8px">Stats</div>
+      <div class="stat-grid">
+        <div class="k">Last</div><div class="v" id="last">—</div>
+        <div class="k">Best</div><div class="v" id="best">—</div>
+        <div class="k">Average (last 5)</div><div class="v" id="avg">—</div>
+        <div class="k">Attempts</div><div class="v" id="tries">0</div>
+      </div>
+      <div style="font-weight:700;margin:8px 0 4px">History</div>
+      <div class="history" id="history">—</div>
+    </aside>
+  </div>
+
+  <script>
+    let state = 'idle';
+    let waitTimer = null;
+    let startTs = 0;
+
+    const panel = document.getElementById('panel');
+    const msg   = document.getElementById('msg');
+    const startBtn = document.getElementById('start');
+    const resetBtn = document.getElementById('reset');
+
+    const elLast = document.getElementById('last');
+    const elBest = document.getElementById('best');
+    const elAvg  = document.getElementById('avg');
+    const elTries= document.getElementById('tries');
+    const elHist = document.getElementById('history');
+
+    const BEST_KEY = 'rx_best_ms';
+    const HISTORY_KEY = 'rx_history_ms';
+
+    let best = Number(localStorage.getItem(BEST_KEY)) || null;
+    let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+
+    function ms(n){ return Math.round(n); }
+    function fmt(n){ return n===null? '—' : `${ms(n)} ms`; }
+
+    function updateStats(){
+      const last = history.length ? history[history.length-1] : null;
+      elLast.textContent = fmt(last);
+      elBest.textContent = fmt(best);
+      if(history.length){
+        const last5 = history.slice(-5);
+        const avg = last5.reduce((a,b)=>a+b,0)/last5.length;
+        elAvg.textContent = `${ms(avg)} ms`;
+      } else elAvg.textContent = '—';
+      elTries.textContent = history.length;
+      elHist.textContent = history.length ? history.map(x=>`${ms(x)} ms`).slice(-10).join(', ') : '—';
+    }
+    updateStats();
+
+    function setPanel(mode, textBig, textSmall){
+      panel.className = `panel ${mode}`;
+      msg.innerHTML = `<div class="big">${textBig}</div>${textSmall? `<div class="muted">${textSmall}</div>`:''}`;
+    }
+
+    function start(){
+      if(state === 'waiting' || state === 'now') return;
+      state = 'ready';
+      setPanel(
+        'ready',
+        'Get Ready...',
+        'Wait until the background turns green, then click or press Space/Enter. (Clicking too early is a foul)'
+      );
+      const delay = 1000 + Math.random() * 2000;
+      clearTimeout(waitTimer);
+      waitTimer = setTimeout(()=>{
+        state = 'now';
+        setPanel(
+          'now',
+          'NOW!',
+          'Click or press Space/Enter as fast as you can!'
+        );
+        startTs = performance.now();
+      }, delay);
+    }
+
+    function tooSoon(){
+      state = 'toosoon';
+      clearTimeout(waitTimer);
+      setPanel(
+        'toosoon',
+        'Too soon 😅',
+        'You clicked before it turned green. Press Start to try again.'
+      );
+    }
+
+    function clicked(){
+      if(state === 'ready'){ tooSoon(); return; }
+      if(state !== 'now') return;
+
+      const rt = performance.now() - startTs;
+      history.push(rt);
+
+      if(best === null || rt < best){
+        best = rt;
+        localStorage.setItem(BEST_KEY, String(ms(best)));
+      }
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.map(ms)));
+      updateStats();
+
+      let feedback = "";
+      let colorClass = "";
+      if(rt <= 250){
+        feedback = "Amazing! Lightning fast ⚡";
+        colorClass = "green";
+      } else if(rt <= 500){
+        feedback = "Good job 🙂";
+        colorClass = "yellow";
+      } else {
+        feedback = "Too slow 😅 Keep practicing!";
+        colorClass = "red";
+      }
+
+      state = 'idle';
+      setPanel('wait', `${ms(rt)} ms`, feedback);
+      panel.style.background = 
+        colorClass === "green" ? "#d4fdd4" : 
+        colorClass === "yellow" ? "#fff8d4" : 
+        "#ffd4d4";
+    }
+
+    function reset(){
+      best = null; history = [];
+      localStorage.removeItem(BEST_KEY);
+      localStorage.removeItem(HISTORY_KEY);
+      updateStats();
+    }
+
+    startBtn.addEventListener('click', start);
+    resetBtn.addEventListener('click', reset);
+    panel.addEventListener('click', ()=>{
+      if(state==='ready') tooSoon();
+      else if(state==='now') clicked();
+    });
+
+    function onKey(e){
+      if(e.code==='Space' || e.code==='Enter'){
+        e.preventDefault();
+        if(state==='ready') tooSoon();
+        else if(state==='now') clicked();
+        else start();
+      }
+    }
+    document.addEventListener('keydown', onKey);
+
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden && (state==='ready' || state==='now')){
+        clearTimeout(waitTimer);
+        state='idle';
+        setPanel('wait','Interrupted','Switching tabs interrupted the test. Press Start to try again.');
+      }
+    });
+  </script>
+</body>
+</html>
