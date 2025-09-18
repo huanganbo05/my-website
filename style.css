@@ -1,28 +1,24 @@
-/* ===== 背景 ===== */
 body {
   background: url("Wallpaper.jpg") no-repeat center center fixed;
   background-size: cover;
   margin: 0;
   position: relative;
-  margin-top: 60px; /* 给 navbar 预留空间，如果有导航 */
+  margin-top: 60px;
 }
 
-/* 半透明覆盖层，让背景淡化 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(255, 255, 255, 0.8); /* 调整透明度控制淡化效果 */
+  background: rgba(255, 255, 255, 0.8);
   z-index: -1;
 }
 
-/* ===== 全局字体 ===== */
 p {
   font-size: 1.5rem;
   line-height: 1.4;
 }
 
-/* ===== Header 区域 ===== */
 .header {
   text-align: center;
   margin-top: 50px;
@@ -53,10 +49,9 @@ h1 {
   color: #8e44ad;
 }
 
-/* ===== About 区块 ===== */
 .about {
   display: flex;
-  gap: 10px;           /* 图文间距 */
+  gap: 10px;
   align-items: flex-start;
   margin-top: 48px;
 }
@@ -76,7 +71,6 @@ h1 {
   flex: 1;
 }
 
-
 .about-title,
 summary.about-title {
   font-size: 3.2rem;
@@ -86,20 +80,18 @@ summary.about-title {
   position: relative;
   padding-bottom: 8px;
   cursor: pointer;
-  display: list-item; /* 保留默认箭头 */
+  display: list-item;
   padding-left: 20px;
 }
-/* About 的 h2 */
+
 .about > .about-content .about-title {
   list-style: none;
   display: block;
 }
 
-/* Resume / Hobbies 的 summary */
 summary.about-title {
   padding-left: 20px;
 }
-
 
 .about-title::after,
 summary.about-title::after {
@@ -112,7 +104,6 @@ summary.about-title::after {
   background: linear-gradient(90deg, #ff7eb3, #8e44ad, #3498db);
 }
 
-/* ===== Resume 区块 ===== */
 .resume-body {
   padding: 0 16px;
   animation: fadeSlide .18s ease-out;
@@ -157,13 +148,11 @@ summary.about-title::after {
   font-size: 1.5rem;
 }
 
-/* 展开动画 */
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== 按钮 ===== */
 .download-btn {
   display: inline-block;
   padding: 12px 24px;
@@ -184,10 +173,9 @@ summary.about-title::after {
 }
 
 section, details {
-  scroll-margin-top: 80px; /* 导航栏大约 64px，再加一些间距 */
+  scroll-margin-top: 80px;
 }
 
-/* 顶部导航：半透明+毛玻璃，固定在顶部 */
 .navbar{
   position: fixed; top: 0; left: 0; right: 0;
   background: rgba(255,255,255,0.75);
@@ -196,20 +184,17 @@ section, details {
   z-index: 1000;
 }
 
-/* 导航内容宽度与间距 */
 .nav-inner {
-  max-width: none;          /* 不要限制居中宽度 */
-  margin: 0;                /* 去掉 auto 居中 */
-  padding: 12px 32px;       /* 给两边留 32px 空隙，你可以调小/调大 */
+  max-width: none;
+  margin: 0;
+  padding: 12px 32px;
   display: flex;
   gap: 22px;
   align-items: center;
   flex-wrap: wrap;
-  justify-content: flex-start; /* 从左开始排 */
+  justify-content: flex-start;
 }
 
-
-/* 链接基础样式 */
 .navbar a{
   position: relative;
   text-decoration: none;
@@ -221,7 +206,6 @@ section, details {
   transition: color .2s ease;
 }
 
-/* 悬停下划线动画（从中间展开） */
 .navbar a::after{
   content:"";
   position:absolute; left: 50%; bottom: -2px;
@@ -233,24 +217,21 @@ section, details {
 .navbar a:hover{ color:#6b3bbd; }
 .navbar a:hover::after{ width: 100%; }
 
-/* 当前项高亮 */
 .navbar a.active{
   color:#6b3bbd;
 }
 .navbar a.active::after{ width: 100%; }
 
-/* 右侧“Game”做成小胶囊按钮 */
 .navbar .nav-cta{
-  margin-left: auto;                 /* 把它推到最右边 */
+  margin-left: auto;
   padding: 8px 14px;
   border-radius: 999px;
   background: linear-gradient(90deg,#8e44ad,#3498db);
   color:#fff;
 }
-.navbar .nav-cta::after{ display:none; }  /* 不要下划线动画 */
+.navbar .nav-cta::after{ display:none; }
 .navbar .nav-cta:hover{
   filter: brightness(1.05);
 }
 
-/* 给正文让出导航高度（如果没有这行，导航会遮住页面顶部） */
 body{ margin-top: 64px; }
