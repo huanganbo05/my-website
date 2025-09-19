@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contact Me</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 95%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 16px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      background: linear-gradient(90deg, #8e44ad, #3498db);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <h1>Contact Me</h1>
+  <form action="https://formspree.io/f/mldwqgrg" method="POST">
+    <label>Your Name</label>
+    <input type="text" name="name" required />
+
+    <label>Your Email</label>
+    <input type="email" name="_replyto" required />
+
+    <label>Your Message</label>
+    <textarea name="message" rows="6" required></textarea>
+
+    <button type="submit">Send Message</button>
+  </form>
+</body>
+</html>
